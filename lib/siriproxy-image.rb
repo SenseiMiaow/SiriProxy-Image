@@ -25,7 +25,7 @@ class SiriProxy::Plugin::Image < SiriProxy::Plugin
 		search = search[0, search.length-1]
 		
 		#more
-		elsif(search == "more")
+		if(search == "more")
 			@page = @page+1
 			@start = @start+5
 			search = @lastSearch
