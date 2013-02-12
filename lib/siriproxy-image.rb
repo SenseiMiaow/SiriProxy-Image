@@ -11,24 +11,37 @@ class SiriProxy::Plugin::Image < SiriProxy::Plugin
 	
 	
 	def initialize(config)
+		@lastSearch = ""
+		@start = 0
 	end
 	
-	# Search images
+	
+	# Show images
 	listen_for /(?:(?:image)|(?:show)) (.*)/i do |search|
-		imgUrl = ""
-		strSearch = CGI.escape(search)
-		result = HTTParty.get("https://ajax.googleapis.com/ajax/services/search/images?v=1.0&imgsz=large&q=#{strSearch}").parsed_response['responseData']['results']
+		if(search == "more ")
+			@start = @start+5
+			search = @lastSearch
+			more = " more"
+		else
+			@start = 0
+			@lastSearch = search
+			more = ""
+		end
 		
-		say "Searched images:"
+		strSearch = CGI.escape(search)
+		result = HTTParty.get("https://ajax.googleapis.com/ajax/services/search/images?v=1.0&imgsz=large&start=#{@start}&rsz=5&q=#{strSearch}").parsed_response['responseData']['results']
+		
+		say "Show!#{more} \"#{search}\" images for my master"
 		
 		#result(s)
+		imgUrl = ""
 		result.each do |item|
 			imgUrl = item["unescapedUrl"]
 			
 			#image
 			object = SiriAddViews.new
 			object.make_root(last_ref_id)
-			answer = SiriAnswer.new("Image: \"#{search}\"", [
+			answer = SiriAnswer.new("Show!#{more}: \"#{search}\"", [
 				SiriAnswerLine.new('logo', imgUrl)
 			])
 			object.views << SiriAnswerSnippet.new([answer])
