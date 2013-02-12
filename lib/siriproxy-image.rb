@@ -32,7 +32,7 @@ class SiriProxy::Plugin::Image < SiriProxy::Plugin
 		end
 		
 		strSearch = CGI.escape(search)
-		result = HTTParty.get("https://ajax.googleapis.com/ajax/services/search/images?v=1.0&imgsz=large&start=#{@start}&rsz=#{@max}&q=#{strSearch}").parsed_response['responseData']['results']
+		result = HTTParty.get("https://ajax.googleapis.com/ajax/services/search/images?v=1.0&imgsz=medium,large&start=#{@start}&rsz=#{@max}&q=#{strSearch}").parsed_response['responseData']['results']
 		say "Show!#{more} \"#{search}\" #{@responseTitle}"
 		
 		#result(s)
