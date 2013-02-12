@@ -29,4 +29,5 @@ Usage
 -----
 The currently implemented commands are:
 
-    image [search value]
+    image	[search value]
+	show	[search value]
