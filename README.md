@@ -31,6 +31,6 @@ Usage
 -----
 The currently implemented commands are:
 
-    image     [search value]
-    show      [search value]
-    show more => shows more results of first search
+    show/image        => search value
+    show/image more   => shows more results of first search
+    show nine gag     => shows 9gag images use show/image more for next page

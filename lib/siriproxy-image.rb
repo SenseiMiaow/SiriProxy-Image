@@ -1,5 +1,6 @@
 
 require 'cgi'
+require 'json'
 require 'httparty'
 
 #######
@@ -13,6 +14,7 @@ class SiriProxy::Plugin::Image < SiriProxy::Plugin
 	def initialize(config)
 		@lastSearch = ""
 		@start = 0
+		@page = 1
 		@max = config["max_results"]
 		@responseTitle = config["response_title"]
 	end
@@ -21,24 +23,50 @@ class SiriProxy::Plugin::Image < SiriProxy::Plugin
 	# Show images
 	listen_for /(?:(?:image)|(?:show)) (.*)/i do |search|
 		search = search[0, search.length-1]
-		if(search == "more")
+		
+		#more
+		elsif(search == "more")
+			@page = @page+1
 			@start = @start+5
 			search = @lastSearch
 			more = " more"
+		#9gag
+		elsif(search == "nine gag")
+			search = "9gag"
+			@start = 0
+			@page = 1
+			@lastSearch = search
+			more = ""
+		#default
 		else
 			@start = 0
+			@page = 1
 			@lastSearch = search
 			more = ""
 		end
 		
-		strSearch = CGI.escape(search)
-		result = HTTParty.get("https://ajax.googleapis.com/ajax/services/search/images?v=1.0&imgsz=medium,large&start=#{@start}&rsz=#{@max}&q=#{strSearch}").parsed_response['responseData']['results']
+		#9gag
+		if(search == "9gag")
+			result = HTTParty.get("http://9gag.com/hot/index/page/#{@page}?view=json")
+			parsed = JSON.parse(result)
+			result = parsed["items"]
+		#default
+		else
+			strSearch = CGI.escape(search)
+			result = HTTParty.get("https://ajax.googleapis.com/ajax/services/search/images?v=1.0&imgsz=medium,large&start=#{@start}&rsz=#{@max}&q=#{strSearch}").parsed_response['responseData']['results']
+		end
+		
 		say "Show!#{more} \"#{search}\" #{@responseTitle}"
 		
 		#result(s)
 		imgUrl = ""
 		result.each do |item|
-			imgUrl = item["unescapedUrl"]
+			#9gag
+			if(search == "9gag")
+				imgUrl = item
+			else
+				imgUrl = item["unescapedUrl"]
+			end
 			
 			#image
 			object = SiriAddViews.new
