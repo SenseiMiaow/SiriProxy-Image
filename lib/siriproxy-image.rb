@@ -1,7 +1,7 @@
 
 require 'cgi'
 require 'httparty'
-require 'hpricot'
+require 'nokogiri'
 require 'open-uri'
 
 #######
@@ -51,28 +51,20 @@ class SiriProxy::Plugin::Image < SiriProxy::Plugin
 		
 		#9gag
 		if(search == "9gag")
-			#search images
-			images = ""
-			@doc = Hpricot(open("http://9gag.com/hot/#{@page}"))
-			@doc.search("/html/body//img").each do |img|
-				images = images + img.to_s + '\n'
-			end
 			
 			#display images
-			imgDoc = Hpricot(images)
-			imgDoc.search("//img").each do |image|
-				if(image[:src] =~ /(.*)photo(.*)/)
-					
-					#image
-					object = SiriAddViews.new
-					object.make_root(last_ref_id)
-					answer = SiriAnswer.new("Show!#{more}: \"#{search}\"", [
-						SiriAnswerLine.new('logo', "#{image[:src]}")
-					])
-					object.views << SiriAnswerSnippet.new([answer])
-					send_object object
-					
-				end
+			doc = Nokogiri::HTML(open("http://9gag.com/hot/#{@page}"))
+			doc.xpath("/html/body//img[@src[contains(.,'photo')]]/@src[1]").each do |image|
+				
+				#image
+				object = SiriAddViews.new
+				object.make_root(last_ref_id)
+				answer = SiriAnswer.new("Show!#{more}: \"#{search}\"", [
+					SiriAnswerLine.new('logo', "#{image}")
+				])
+				object.views << SiriAnswerSnippet.new([answer])
+				send_object object
+				
 			end
 			
 		#default

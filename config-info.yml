@@ -7,5 +7,5 @@
     - name: 'Image'
       git: 'git://github.com/DJXFMA/SiriProxy-Image.git'
       response_title: 'images for my Master'    #Response comes after: Show! cookie monster "images for my master"
-      max_results: 5                            #Max results to display each response
+      max_results: 5                            #Max results to display each response; 9gag is always 10 results!
 	  

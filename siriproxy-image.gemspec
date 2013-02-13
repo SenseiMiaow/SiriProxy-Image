@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_runtime_dependency "httparty"
-  s.add_runtime_dependency "hpricot"
+  s.add_runtime_dependency "nokogiri"
   s.add_development_dependency "rake"
 
 end
