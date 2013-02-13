@@ -1,6 +1,5 @@
 
 require 'cgi'
-require 'json'
 require 'httparty'
 require 'hpricot'
 require 'open-uri'
@@ -56,7 +55,7 @@ class SiriProxy::Plugin::Image < SiriProxy::Plugin
 			images = ""
 			@doc = Hpricot(open("http://9gag.com/hot/#{@page}"))
 			@doc.search("/html/body//img").each do |img|
-				images = images + img.to_s
+				images = images + img.to_s + '\n'
 			end
 			
 			#display images
