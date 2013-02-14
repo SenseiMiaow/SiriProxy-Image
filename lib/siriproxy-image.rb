@@ -1,8 +1,11 @@
-
-require 'cgi'
+#require
+require 'cora'
+require 'siri_objects'
 require 'httparty'
 require 'nokogiri'
 require 'open-uri'
+require 'cgi'
+
 
 #######
 # This is a fun Image plugin:
@@ -14,22 +17,30 @@ require 'open-uri'
 #    .- show more for next page
 ######
 
+
 class SiriProxy::Plugin::Image < SiriProxy::Plugin
+	#accessors
+	attr_accessor :lastSearch
+	attr_accessor :start
+	attr_accessor :page
+	attr_accessor :max
+	attr_accessor :responseTitle
+	
 	
 	#initialize
 	def initialize(config)
-		@lastSearch = ""
-		@start = 0
-		@page = 1000
+		self.lastSearch = ""
+		self.start = 0
+		self.page = 1000
 		if(config["max_results"] == "")
-			@max = 5
+			self.max = 5
 		else
-			@max = config["max_results"]
+			self.max = config["max_results"]
 		end
 		if(config["response_title"] == "")
-			@responseTitle = "images for my Master"
+			self.responseTitle = "images for my Master"
 		else
-			@responseTitle = config["response_title"]
+			self.responseTitle = config["response_title"]
 		end
 	end
 	
@@ -48,53 +59,58 @@ class SiriProxy::Plugin::Image < SiriProxy::Plugin
 		
 		#more
 		if(search == "more")
-			@page = @page-1
-			@start = @start+5
-			search = @lastSearch
+			self.page = self.page-1
+			self.start = self.start + self.max
+			search = self.lastSearch
 			more = " more"
 		#9gag
 		elsif(search == "nine gag")
 			search = "9gag"
-			@start = 0
-			@page = 1000
-			@lastSearch = search
+			self.start = 0
+			self.page = 1000
+			self.lastSearch = search
 			more = ""
 		#default
 		else
-			@start = 0
-			@page = 1000
-			@lastSearch = search
+			self.start = 0
+			self.page = 1000
+			self.lastSearch = search
 			more = ""
 		end
 		
 		
 		#say
-		say "Show!#{more} \"#{search}\" #{@responseTitle}"
+		say "Show!#{more} \"#{search}\" #{self.responseTitle}"
 		
 		
 		#9gag
 		if(search == "9gag")
 			
+			
 			#start object
 			object = SiriAddViews.new
 			object.make_root(last_ref_id)
 			
-			#display images
-			doc = Nokogiri::HTML(open("http://9gag.com/hot/#{@page}"))
-			doc.xpath("/html/body//img[@src[contains(.,'photo')]]/@src[1]").each do |image|
+			
+			#result(s)
+			@answers = []
+			strSearch = CGI.escape(search)
+			result = Nokogiri::HTML(open("http://9gag.com/hot/#{self.page}"))
+			result.xpath("/html/body//img[@src[contains(.,'photo')]]/@src[1]").each do |image|
 				
-				#fill object with an image
-				answer = SiriAnswer.new("Show!#{more}: \"#{search}\"", [
-					SiriAnswerLine.new('logo', "#{image}")
-				])
-				object.views << SiriAnswerSnippet.new([answer])
-				
+				#fill answer with an image
+				@answers << SiriAnswer.new(
+					"Show!#{more}: \"#{search}\" (page: #{self.page})",[
+						SiriAnswerLine.new('show', "#{image}")
+					]
+				)
 			end
 			
 			#send object
+			object.views << SiriAnswerSnippet.new(@answers)
 			send_object object
-		
-		
+			
+			
 		#default
 		else
 			
@@ -102,20 +118,26 @@ class SiriProxy::Plugin::Image < SiriProxy::Plugin
 			object = SiriAddViews.new
 			object.make_root(last_ref_id)
 			
+			
 			#result(s)
+			count = self.start
+			endCount = self.start + self.max
+			@answers = []
 			strSearch = CGI.escape(search)
-			result = HTTParty.get("https://ajax.googleapis.com/ajax/services/search/images?v=1.0&imgsz=medium,large&start=#{@start}&rsz=#{@max}&q=#{strSearch}").parsed_response["responseData"]["results"]
+			result = HTTParty.get("https://ajax.googleapis.com/ajax/services/search/images?v=1.0&imgsz=medium,large&start=#{self.start}&rsz=#{self.max}&q=#{strSearch}").parsed_response["responseData"]["results"]
 			result.each do |item|
+				count = count + 1
 				
-				#fill object with an image
-				answer = SiriAnswer.new("Show!#{more}: \"#{search}\"", [
-					SiriAnswerLine.new('logo', item["unescapedUrl"])
-				])
-				object.views << SiriAnswerSnippet.new([answer])
-				
+				#fill answer with an image
+				@answers << SiriAnswer.new(
+					"Show!#{more}: \"#{search}\" (#{count}/#{endCount})",[
+						SiriAnswerLine.new('show', "#{item["unescapedUrl"]}")
+					]
+				)
 			end
 			
 			#send object
+			object.views << SiriAnswerSnippet.new(@answers)
 			send_object object
 			
 		end
