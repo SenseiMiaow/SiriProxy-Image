@@ -57,12 +57,17 @@ class SiriProxy::Plugin::Image < SiriProxy::Plugin
 		if(search[0, 1] == " ")
 			search = search[1, search.length]
 		end
-		
+		if(search == "")
+			search = "nothing to search for"
+		end
 		
 		#more
 		if(search == "more")
 			self.page = self.page-1
 			self.start = self.start + self.max
+			if(self.lastSearch == "")
+				self.lastSearch = "nothing to search for"
+			end
 			search = self.lastSearch
 			more = " more"
 		#9gag
@@ -95,8 +100,7 @@ class SiriProxy::Plugin::Image < SiriProxy::Plugin
 			
 			#result(s)
 			@answers = []
-			strSearch = CGI.escape(search)
-			result = Nokogiri::HTML(open("http://9gag.com/hot/#{self.page}"))
+			result = Nokogiri::HTML(open("http://9gag.com/hot/#{self.page}")) rescue nil
 			result.xpath("/html/body//img[@src[contains(.,'photo')]]/@src[1]").each do |image|
 				
 				#fill answer with an image
@@ -123,9 +127,9 @@ class SiriProxy::Plugin::Image < SiriProxy::Plugin
 			#result(s)
 			count = self.start
 			endCount = self.start + self.max
-			@answers = []
 			strSearch = CGI.escape(search)
-			result = HTTParty.get("https://ajax.googleapis.com/ajax/services/search/images?v=1.0&imgsz=medium,large&start=#{self.start}&rsz=#{self.max}&q=#{strSearch}").parsed_response["responseData"]["results"]
+			@answers = []
+			result = HTTParty.get("https://ajax.googleapis.com/ajax/services/search/images?v=1.0&imgsz=medium&start=#{self.start}&rsz=#{self.max}&q=#{strSearch}").parsed_response["responseData"]["results"] rescue nil
 			result.each do |item|
 				count = count + 1
 				
