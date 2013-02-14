@@ -15,6 +15,8 @@ require 'cgi'
 #    .- show more or image more
 # -. This plugin will also display 9gag images when you say "show 9gag" or "show me 9gag"
 #    .- show more for next page
+#
+#	Added object handling: trial & error! :)!
 ######
 
 
@@ -85,7 +87,6 @@ class SiriProxy::Plugin::Image < SiriProxy::Plugin
 		
 		#9gag
 		if(search == "9gag")
-			
 			
 			#start object
 			object = SiriAddViews.new
