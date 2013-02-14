@@ -22,7 +22,7 @@ class SiriProxy::Plugin::Image < SiriProxy::Plugin
 	
 	
 	# Show images
-	listen_for /(?:(?:image)|(?:show)) (.*)/i do |search|
+	listen_for /(?:(?:image)|(?:show))(?: me) (.*)/i do |search|
 		search = search[0, search.length-1]
 		
 		#more
@@ -75,12 +75,7 @@ class SiriProxy::Plugin::Image < SiriProxy::Plugin
 			#result(s)
 			imgUrl = ""
 			result.each do |item|
-				#9gag
-				if(search == "9gag")
-					imgUrl = item
-				else
-					imgUrl = item["unescapedUrl"]
-				end
+				imgUrl = item["unescapedUrl"]
 				
 				#image
 				object = SiriAddViews.new
