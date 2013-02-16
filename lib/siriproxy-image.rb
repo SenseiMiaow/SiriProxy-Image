@@ -38,6 +38,9 @@ class SiriProxy::Plugin::Image < SiriProxy::Plugin
 			self.max = 5
 		else
 			self.max = config["max_results"]
+			if(self.max > 8)
+				self.max = 8
+			end
 		end
 		if(config["response_title"] == "")
 			self.responseTitle = "images for my Master"
